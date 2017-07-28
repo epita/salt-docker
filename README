@@ -1,0 +1,56 @@
+  SALT-MASTER
+---------------
+
+Set values in configuration file /etc/salt/master :
+
+  -> auto_accept: True
+  -> open_mode: True
+  -> fileserver_backend:
+       - git
+       - roots
+  -> gitfs_remotes:
+       - https://github.com/saltstack-formulas/openssh-formula
+       - https://github.com/saltstack-formulas/users-formula
+       - https://github.com/saltstack-formulas/sudoers-formula
+  -> pillar_merge_lists: True
+  -> git_pillar_provider: pygit2
+  -> pillar_roots:
+       - base:
+         - /path/to/pillars
+
+Required packages:
+
+  - python2-pygit2
+  - python-timelib (AUR)
+
+
+Intellij + Gradle
+=================
+
+It is *mandatory* to be able to access plugins.jetbrains.com:443 to have
+Intellij and Gradle working together.
+
+
+Troubleshooting
+===============
+
+If you notice that when pushing modifications to the pillars, they are not used
+by the salt master, you can try running the command:
+
+```
+salt-run cache.clear_git_lock git_pillar type=update
+```
+
+The following errors can be generated in the journal:
+
+```
+[WARNING ] git_pillar_global_lock is enabled and update lockfile
+/var/cache/salt/master/git_pillar/55ec6ad0da37d5d105dfda7b2738efc9a6d295fb7d9acc78631333614e7bed66/.git/update.lk
+is present for git_pillar remote 'ssh://git@git-int.int.cri.epita.net/salt-images.git'.
+
+[WARNING ] Update lock file is present for git_pillar remote 'ssh://git@git-int.int.cri.epita.net/salt-images.git', skipping. If
+this warning persists, it is possible that the update process was
+interrupted, but the lock could also have been manually set. Removing
+/var/cache/salt/master/git_pillar/55ec6ad0da37d5d105dfda7b2738efc9a6d295fb7d9acc78631333614e7bed66/.git/update.lk
+or running 'salt-run cache.clear_git_lock git_pillar type=update' will allow updates to continue for this remote.
+```

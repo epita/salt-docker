@@ -1,0 +1,99 @@
+#####        Security settings       #####
+##########################################
+# Enable "open mode", this mode still maintains encryption, but turns off
+# authentication, this is only intended for highly secure environments or for
+# the situation where your keys end up in a bad state. If you run in open mode
+# you do so at your own risk!
+open_mode: True
+
+# Enable auto_accept, this setting will automatically accept all incoming
+# public keys from the minions. Note that this is insecure.
+auto_accept: True
+
+#####      File Server settings      #####
+##########################################
+# Salt runs a lightweight file server written in zeromq to deliver files to
+# minions. This file server is built into the master daemon and does not
+# require a dedicated port.
+
+# The file server works on environments passed to the master, each environment
+# can have multiple root directories, the subdirectories in the multiple file
+# roots cannot match, otherwise the downloaded files will not be able to be
+# reliably ensured. A base environment is required to house the top file.
+file_roots:
+  dev:
+    - /srv/salt/dev/states/
+
+top_file_merging_strategy: same
+default_top: base
+
+# File Server Backend
+#
+# To use multiple backends list them in the order they are searched:
+fileserver_backend:
+  - git
+  - roots
+
+# Git File Server Backend Configuration
+#
+# Optional parameter used to specify the provider to be used for gitfs. Must
+# be one of the following: pygit2, gitpython, or dulwich. If unset, then each
+# will be tried in that same order, and the first one with a compatible
+# version installed will be the provider that is used.
+gitfs_provider: pygit2
+
+# When using the git fileserver backend at least one git remote needs to be
+# defined. The user running the salt master will need read access to the repo.
+#
+# The repos will be searched in order to find the file requested by a client
+# and the first repo to have the file will return it.
+# When using the git backend branches and tags are translated into salt
+# environments.
+# Note: file:// repos will be treated as a remote, so refs you want used must
+# exist in that repo as *local* refs.
+gitfs_remotes:
+  - https://github.com/epita/salt-cri/:
+    - saltenv:
+      - base:
+        - root: states
+        - ref: master
+  - https://github.com/epita/openssh-formula
+  - https://github.com/saltstack-formulas/users-formula
+  - https://github.com/saltstack-formulas/sudoers-formula
+
+#####         Pillar settings        #####
+##########################################
+# Salt Pillars allow for the building of global data that can be made selectively
+# available to different minions based on minion grain filtering. The Salt
+# Pillar is laid out in the same fashion as the file server, with environments,
+# a top file and sls files. However, pillar data does not need to be in the
+# highstate format, and is generally just key/value pairs.
+pillar_roots:
+  dev:
+    - /srv/salt/dev/pillars
+
+ext_pillar:
+  - git:
+    - https://github.com/epita/salt-cri/:
+      - root: pillars
+      - env: base
+      - name: base
+    - https://github.com/epita/salt-cri/:
+      - root: pillars
+      - env: dev
+      - name: dev
+
+# Recursively merge lists by aggregating them instead of replacing them.
+pillar_merge_lists: True
+
+# Git External Pillar (git_pillar) Configuration Options
+#
+# Specify the provider to be used for git_pillar. Must be either pygit2 or
+# gitpython. If unset, then both will be tried in that same order, and the
+# first one with a compatible version installed will be the provider that
+# is used.
+git_pillar_provider: pygit2
+
+# If the branch is omitted from a git_pillar remote, then this branch will
+# be used instead
+git_pillar_branch: master
