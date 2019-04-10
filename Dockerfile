@@ -7,7 +7,8 @@ RUN apk add --no-cache \
     musl-dev \
     py2-pip \
     python2-dev \
-    py2-pygit2
+    py2-pygit2 \
+    py2-zmq
 
 RUN pip install timelib salt
 
